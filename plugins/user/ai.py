@@ -10,8 +10,7 @@ import io
 from tempfile import NamedTemporaryFile
 from utils import http
 from locales import use_lang
-import requests
-from bardapi import Bard
+from gemini import Gemini
 import markdown
 from telegraph.aio import Telegraph
 from config import plugins, bot
@@ -58,7 +57,6 @@ async def process_mode(mtext, mmode):
         mtext = mtext[3:]
     elif not mmode:
         mmode = (await Config.get_or_create(id="bard"))[0].value
-        print(mmode)
         if not mmode:
             mmode = "message"
     return mmode, mtext
@@ -164,25 +162,11 @@ async def bardc(c: Client, m: Message, t):
             mtext = m.text
         else:
             taccount = Telegraph()
-            await taccount.create_account(short_name="Bard")
+            await taccount.create_account(short_name="Gemini")
             path = None
-            session = requests.Session()
-            session_cookies = json.load(open("bard_coockies.json", "r"))
-            secure_1psid = next((cookie["value"] for cookie in session_cookies if cookie["name"] == "__Secure-1PSID"), None)
-
-            for cookie in session_cookies:
-                session.cookies.set(cookie["name"], cookie["value"], domain=cookie["domain"], path=cookie["path"])
-
-            session.headers = {
-                "Host": "gemini.google.com",
-                "X-Same-Domain": "1",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
-                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-                "Origin": "https://gemini.google.com",
-                "Referer": "https://gemini.google.com/",
-            }
-
-            bot = Bard(session=session, token=secure_1psid)
+            cookies = json.load(open("bard_coockies.json", "r"))
+            cookies = {cookie["name"]: cookie["value"] for cookie in cookies}
+            bot = Gemini(cookies=cookies)
             if m.reply_to_message and m.reply_to_message.text:
                 mtext = m.reply_to_message.text
                 if len(m.text.split(" ", maxsplit=1)) >= 2:
@@ -204,7 +188,6 @@ async def bardc(c: Client, m: Message, t):
         await m.edit(t("ai_bard_searching").format(text=f"<pre>{mtext}</pre>"))
         if m.reply_to_message and (m.reply_to_message.photo or m.reply_to_message.sticker):
             file = await c.download_media(m.reply_to_message, in_memory=True)
-            file_name = file.name
             file_bytes = bytes(file.getbuffer())
             try:
                 with NamedTemporaryFile() as f:
@@ -214,39 +197,23 @@ async def bardc(c: Client, m: Message, t):
                 pass
         else:
             file_bytes = None
-            file_name = None
-        response = bot.get_answer(mtext, image=file_bytes, image_name=file_name)
-        text = f'<pre>{mtext}</pre>\n\n{response["content"]}'
+        response = bot.generate_content(mtext, image=file_bytes)
+        text = f'<pre>{mtext}</pre>\n\n{response.text}'
 
-        ttext = markdown.markdown(response["content"])
-        for i in range(ttext.count("[Image of")):
-            inicio = ttext.index("[Image of")
-            fim = ttext.index("]", inicio) + 1
-            ttext = ttext[:inicio] + f"<img src='{response['images'][i]}'>" + ttext[fim:]
+        ttext = markdown.markdown(response.text)
+        for i in response.web_images:
+            ttext = ttext.replace(i.title, f"<img src='{str(i.url)}'>")
 
         page_content =  f"<img src='https://telegra.ph{teleimg[0]['src']}'><br>\n\n" if teleimg else ""
         page_content += f'<blockquote>{mtext}</blockquote>\n\n{ttext}'
-        page_title = f"Bard-userlixo-{c.me.first_name}"
-        author_info = {"author_name": "Bard", "author_url": "https://t.me/UserLixo"}
+        page_title = f"Gemini-userlixo-{c.me.first_name}"
+        author_info = {"author_name": "Gemini", "author_url": "https://t.me/UserLixo"}
 
         page = await update_page(taccount, path, page_title, page_content, author_info)
-        if mmode == "voice":
-            voice = bot.speech(response["content"])
-            with NamedTemporaryFile() as f:
-                f.write(bytes(voice['audio']))
-                newm = m.reply_to_message if m.reply_to_message else m
-                newm = await c.send_voice(
-                                          m.chat.id,
-                                          f.name, 
-                                          caption=f'<pre>{mtext}</pre>\n\n{page["url"]}',
-                                          reply_to_message_id=m.reply_to_message.id if m.reply_to_message else None
-                                          )
-            if m.from_user.is_self:
-                await m.delete()
-        elif len(text) > 4096 or mmode == "telegraph":
+        if len(text) > 4096 or mmode == "telegraph":
             newm = await m.edit(f'<pre>{mtext}</pre>\n\n{page["url"]}')
-        elif response["images"]:
-            photos = [InputMediaPhoto(io.BytesIO((await http.get(i)).content), caption=text[:4096] if n == 0 else None) for n, i in enumerate(response["images"])]
+        elif response.web_images:
+            photos = [InputMediaPhoto(str(i.url), caption=text[:4096] if n == 0 else None) for n, i in enumerate(response.web_images)]
             newm = (await m.reply_media_group(photos))[0]
         else:
             newm = await m.edit(text[:4096])

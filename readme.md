@@ -19,7 +19,7 @@ Multipurpose Python userbot for Telegram
 *   Run `python3 bot.py` and login user and bot
 
 ## Ai comands
-*   To configure the artificial intelligences, you need to download the cookie editor in the browser (for Bing to work it needs to be Edge) and open the sites: https://bing.com/chat, and https://bard.google.com/chat. Using the cookie editor, export to JSON and save in the files `cookies.json` and `bard_cookies.json` respectively.
+*   To configure the artificial intelligences, you need to download the cookie editor in the browser (for Bing to work it needs to be Edge) and open the sites: https://bing.com/chat, and https://gemini.google.com/app. Using the cookie editor, export to JSON and save in the files `cookies.json` and `bard_cookies.json` respectively.
 
 ## Running
 
