@@ -49,10 +49,10 @@ async def kibe(c: Client, m: Message, t):
     if rmsg:
         keyb = [
             [
-                ("Sticker", f"kibes_{m.chat.id}_{rmsg.id}_{emoji}"),
-                ("Emoji", f"kibee_{m.chat.id}_{rmsg.id}_{emoji}"),
+                (t("sticker"), f"kibes_{m.chat.id}_{rmsg.id}_{emoji}"),
+                (t("emoji"), f"kibee_{m.chat.id}_{rmsg.id}_{emoji}"),
             ], [
-                ("Both", f"kibea_{m.chat.id}_{rmsg.id}_{emoji}"),
+                (t("both"), f"kibea_{m.chat.id}_{rmsg.id}_{emoji}"),
             ]
         ]
 
