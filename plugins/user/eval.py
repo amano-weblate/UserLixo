@@ -22,7 +22,7 @@ async def evals(c: Client, m: Message):
         return
     else:
         if len(str(res)) > 4000:
-            with io.BytesIO(str.encode(res)) as out_file:
+            with io.BytesIO(str.encode(str(res))) as out_file:
                 out_file.name = "eval.txt"
                 await m.reply_document(out_file)
         else:
