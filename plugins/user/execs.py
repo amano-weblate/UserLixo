@@ -27,8 +27,13 @@ async def execs(c: Client, m: Message, t):
             )
 
     if strio.getvalue():
-        out = f"<code>{html.escape(strio.getvalue())}</code>"
+        out = html.escape(strio.getvalue())
     else:
         out = t("exec_seucess")
-    await m.edit(out, parse_mode=ParseMode.HTML)
+    if len(out) > 4096:
+        with io.BytesIO(str.encode(out)) as out_file:
+            out_file.name = "exec.txt"
+            await m.reply_document(out_file)
+    else:
+        await m.edit(f"<code>{out}</code>", parse_mode=ParseMode.HTML)
 

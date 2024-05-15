@@ -5,7 +5,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 
 from utils import meval
-import os
+import io
 
 
 @Client.on_message(filters.command("eval", prefixes=".") & filters.sudoers)
@@ -22,9 +22,8 @@ async def evals(c: Client, m: Message):
         return
     else:
         if len(str(res)) > 4000:
-            with open("output.txt", "w") as f:
-                f.write(str(res))
-            await c.send_document(m.chat.id, "output.txt", reply_to_message_id=m.message_id)
-            os.remove("output.txt")
+            with io.BytesIO(str.encode(res)) as out_file:
+                out_file.name = "eval.txt"
+                await m.reply_document(out_file)
         else:
             await m.edit(f"<code>{html.escape(str(res))}</code>")

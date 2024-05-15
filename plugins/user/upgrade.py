@@ -39,13 +39,26 @@ async def upgrade(c: Client, m: Message, strings):
         # If the output contains "Already up to date.", edit the message to say that there is nothing to upgrade
         if "Already up to date." in stdout.decode():
             await msg.edit(strings("already_up_to_date").format(branch=branch))
-        # Otherwise, edit the message to say that the userbot is restarting
+        # Otherwise, update requirements and restart
         else:
-            await msg.edit(strings("restarting"))
-            # Save the chat id, message id, and branch name to the database for later use
-            await Config.update_or_create(id="upgrade", defaults={"valuej": {"chat_id": msg.chat.id, "message_id": msg.id}})
-            # Restart the current process with the same arguments
-            os.execl(sys.executable, sys.executable, *sys.argv)
+            # Create a subprocess to update the requirements
+            await msg.edit(strings("updating_requirements"))
+            proc = await asyncio.create_subprocess_shell(
+                "pip install -r requirements.txt",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
+            )
+            stdout = (await proc.communicate())[0]
+            if proc.returncode == 0:
+                await msg.edit(strings("restarting"))
+                # Save the chat id, message id, and branch name to the database for later use
+                await Config.update_or_create(id="upgrade", defaults={"valuej": {"chat_id": msg.chat.id, "message_id": msg.id}})
+                # Restart the current process with the same arguments
+                os.execl(sys.executable, sys.executable, *sys.argv)
+            else:
+                await msg.edit(
+                    strings("requirements_update_failed").format(decode=stdout.decode())
+                )
     # If the subprocess exited with a non-zero code, edit the message to show the error message
     else:
         await msg.edit(

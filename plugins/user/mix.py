@@ -121,7 +121,7 @@ async def tagall(c: Client, m: Message, t):
     await m.reply_text(text)
 
 @Client.on_message(filters.command("mcserver", prefixes=".") & filters.sudoers)
-@bot.on_callback_query(filters.regex("^mcserver") & filters.sudoers)
+@bot.on_callback_query(filters.regex("^mcserver ") & filters.sudoers)
 @use_lang()
 async def mcserver(c: Client, m: Union[Message, CallbackQuery], t):
     if isinstance(m, CallbackQuery):
@@ -131,26 +131,104 @@ async def mcserver(c: Client, m: Union[Message, CallbackQuery], t):
         fun = m.reply
         ip = m.text.split(" ", 1)[1]
     
-    r = await http.get(f"https://api.mcsrvstat.us/2/{ip}")
-    a = r.json()
+    r = await http.get(f"https://api.mcstatus.io/v2/status/java/{ip}")
+    java = r.json()
     
-    keyb = [[("🔄 " + t("refresh"), f"mcserver {ip}")]]
+    r = await http.get(f"https://api.mcstatus.io/v2/status/bedrock/{ip}")
+    bedrock = r.json()
     
-    if a["online"]:
-        txt = f"""<b>STATUS SERVER:</b>
-    IP: {a['hostname'] if 'hostname' in a else a['ip']} (<code>{a['ip']}</code>)
-    <b>Port:</b> <code>{a['port']}</code>
-    <b>Online:</b> <code>{a['online']}</code>
-    <b>Mods:</b> <code>{len(a['mods']['names']) if 'mods' in a else 'N/A'}</code>
-    <b>Players:</b> <code>{a['players']['online']}/{a['players']['max']}</code>
-    <b>Version:</b> <code>{a['version']}</code>
-    <b>MOTD:</b> {a['motd']['html'][0]}\n\n"""
-        txt += f"Updated at: <code>{datetime.fromtimestamp(a['debug']['cachetime']-10800)}</code>\n"""
-        txt += f"Next update in: <code>{datetime.fromtimestamp(a['debug']['cacheexpire']-10800)}</code>"
-    else:
-        txt = f"""<b>STATUS SERVER:</b>
-    <b>IP:</b> {a['hostname'] if 'hostname' in a else a['ip']} (<code>{a['ip']}</code>)
-    <b>Port:</b> <code>{a['port']}</code>
-    <b>Online:</b> <code>{a['online']}</code>"""
+    pre_keyb = []
+    if java["online"] and 'mods' in java and len(java['mods']) > 0:
+        pre_keyb.append(("Mods (java)", f"mcservermods {ip} 0"))
+    if java["online"] and 'list' in java["players"] and len(java["players"]["list"]) > 0:
+        pre_keyb.append(("Players (java)", f"mcserverplayers {ip}"))
+        
+    keyb = [[("🔄 " + t("refresh"), f"mcserver {ip}")]] + [pre_keyb]
+    
+    txt = ""
+    
+    if java["online"]:
+        txt += f"""<b>STATUS SERVER JAVA:</b>
+    IP: {java['host'] if 'host' in java else java['ip_address']} (<code>{java['ip_address']}</code>)
+    <b>Port:</b> <code>{java['port']}</code>
+    <b>Online:</b> <code>{"✅" if java['online'] else "✖️"}</code>
+    <b>Mods:</b> <code>{len(java['mods']) if 'mods' in java else 'N/A'}</code>
+    <b>Players:</b> <code>{java['players']['online']}/{java['players']['max']}</code>
+    <b>Version:</b> <code>{java['version']['name_clean']}</code>
+    <b>MOTD:</b> {java['motd']['clean']}\n\n"""
+        txt += f"Updated at: <code>{datetime.fromtimestamp(java['retrieved_at']/1000)}</code>\n"""
+        txt += f"Next update in: <code>{datetime.fromtimestamp(java['expires_at']/1000)}</code>\n\n"
+    if bedrock["online"]:
+        txt += f"""<b>STATUS SERVER BEDROCK:</b>
+    IP: {bedrock['host'] if 'host' in bedrock else bedrock['ip_address']} (<code>{bedrock['ip_address']}</code>)
+    <b>Port:</b> <code>{bedrock['port']}</code>
+    <b>Online:</b> <code>{"✅" if bedrock['online'] else "✖️"}</code>
+    <b>Players:</b> <code>{bedrock['players']['online']}/{bedrock['players']['max']}</code>
+    <b>Version:</b> <code>{bedrock['version']['name']}</code>
+    <b>MOTD:</b> {bedrock['motd']['clean']}\n\n"""
+        txt += f"Updated at: <code>{datetime.fromtimestamp(bedrock['retrieved_at']/1000)}</code>\n"
+        txt += f"Next update in: <code>{datetime.fromtimestamp(bedrock['expires_at']/1000)}</code>\n\n"
+    if txt == "":
+        txt += f"""<b>STATUS SERVER:</b>
+    <b>IP:</b> {java['host'] if 'host' in java else java['ip_address']} (<code>{java['ip_address']}</code>)
+    <b>Port:</b> <code>{java['port']}</code>
+    <b>Online:</b> <code>{"✅" if java['online'] else "✖️"}</code>"""
     
     await fun(txt, reply_markup=ikb(keyb))
+
+@bot.on_callback_query(filters.regex("^mcservermods ") & filters.sudoers)
+@use_lang()
+async def mcservermods(c: Client, m: CallbackQuery, t):
+    ip, page = m.data.split(" ")[1:]
+    r = await http.get(f"https://api.mcstatus.io/v2/status/java/{ip}")
+    a = r.json()
+    keyb_page = []
+    total_pages = len(a['mods']) // 10
+    if len(a['mods']) % 10 != 0:
+        total_pages += 1
+    if int(page) != 0:
+        keyb_page.append(("⬅️", f"mcservermods {ip} {int(page)-1}"))
+    if int(page) != total_pages-1:
+        keyb_page.append(("➡️", f"mcservermods {ip} {int(page)+1}"))
+    
+    keyb = [[(t("back"), f"mcserver {ip}")]] + [keyb_page]
+    print(keyb)
+    
+    if a["online"]:
+        txt = f"<b>Mods from server {a['host'] if 'host' in a else a['ip_address']}:{a['port']}</b>\n\n"
+        if 'mods' in a:
+            for i in range(int(page)*10, int(page)*10+10):
+                try:
+                    txt += f"• <code>{a['mods'][i]['name']}</code> - {a['mods'][i]['version']}\n"
+                except IndexError:
+                    break
+            txt += f"\n\n--- Page {int(page)+1}/{total_pages} ---"
+    else:
+        txt = f"""<b>STATUS SERVER:</b>
+    <b>IP:</b> {a['host'] if 'host' in a else a['ip_address']} (<code>{a['ip_address']}</code>)
+    <b>Port:</b> <code>{a['port']}</code>
+    <b>Online:</b> <code>{"✅" if a['online'] else "✖️"}</code>"""
+    
+    await m.edit_message_text(txt, reply_markup=ikb(keyb))
+
+@bot.on_callback_query(filters.regex("^mcserverplayers ") & filters.sudoers)
+@use_lang()
+async def mcserverplayers(c: Client, m: CallbackQuery, t):
+    ip = m.data.split(" ")[1]
+    r = await http.get(f"https://api.mcstatus.io/v2/status/java/{ip}")
+    a = r.json()
+    
+    keyb = [[(t("back"), f"mcserver {ip}")]]
+    
+    if a["online"]:
+        txt = f"<b>Players from server {a['host'] if 'host' in a else a['ip_address']}:{a['port']}</b>\n\n"
+        if 'list' in a["players"]:
+            for i in a["players"]["list"]:
+                txt += f"• {i["name_clean"]}\n"
+    else:
+        txt = f"""<b>STATUS SERVER:</b>
+    <b>IP:</b> {a['host'] if 'host' in a else a['ip_address']} (<code>{a['ip_address']}</code>)
+    <b>Port:</b> <code>{a['port']}</code>
+    <b>Online:</b> <code>{"✅" if a['online'] else "✖️"}</code>"""
+    
+    await m.edit_message_text(txt, reply_markup=ikb(keyb))
