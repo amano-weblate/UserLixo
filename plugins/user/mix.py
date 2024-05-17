@@ -224,7 +224,7 @@ async def mcserverplayers(c: Client, m: CallbackQuery, t):
         txt = f"<b>Players from server {a['host'] if 'host' in a else a['ip_address']}:{a['port']}</b>\n\n"
         if 'list' in a["players"]:
             for i in a["players"]["list"]:
-                txt += f"• {i["name_clean"]}\n"
+                txt += f"• {i['name_clean']}\n"
     else:
         txt = f"""<b>STATUS SERVER:</b>
     <b>IP:</b> {a['host'] if 'host' in a else a['ip_address']} (<code>{a['ip_address']}</code>)
