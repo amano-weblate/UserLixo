@@ -9,6 +9,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message
 from locales import use_lang
 
+
 @Client.on_message(filters.command("exec", prefixes=".") & filters.sudoers)
 @use_lang()
 async def execs(c: Client, m: Message, t):
@@ -36,4 +37,3 @@ async def execs(c: Client, m: Message, t):
             await m.reply_document(out_file)
     else:
         await m.edit(f"<code>{out}</code>", parse_mode=ParseMode.HTML)
-

@@ -29,8 +29,9 @@ async def tts(c: Client, m: Message):
             row = []
         row.append((lang, f"tts_{m.chat.id}_{m.id}_{lang}"))
     table.append(row)
-    
+
     await m.reply("Choose a language", reply_markup=table)
+
 
 @bot.on_callback_query(filters.regex(r"tts") & filters.sudoers)
 async def tts_callback(_, q: CallbackQuery):
@@ -56,11 +57,12 @@ async def tts_callback(_, q: CallbackQuery):
     if not text:
         return await q.edit("Nothing to use")
     resp = await atts(text, tlang)
-    
+
     if not resp:
         return await q.edit("Invalid language")
     await message.reply_voice(resp)
     await q.edit("Done")
+
 
 async def atts(text, tlang):
     gtts = gTTS(text, lang=tlang)

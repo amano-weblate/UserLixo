@@ -19,6 +19,7 @@ class Config(Model):
     value = fields.CharField(max_length=255, default="")
     valuej = fields.JSONField(default={})
 
+
 class Personal(Model):
     first_name = fields.CharField(max_length=255)
     last_name = fields.CharField(max_length=255)
@@ -26,15 +27,18 @@ class Personal(Model):
     faked = fields.BooleanField(default=False)
     user_photo = fields.BooleanField(default=False)
 
+
 class Notes(Model):
     name = fields.CharField(max_length=255, pk=True)
     type = fields.CharField(max_length=255, default="text")
     content = fields.CharField(max_length=4096, default="")
     file = fields.CharField(max_length=255, default="")
 
+
 class sticker(Model):
     type = fields.CharField(max_length=255, pk=True)
     num = fields.IntField(default=1)
+
 
 class Fake(Model):
     id = fields.IntField(pk=True, default=0)
@@ -44,6 +48,7 @@ class Fake(Model):
     faked = fields.BooleanField(default=False)
     user_photo = fields.BooleanField(default=False)
     emoji_status = fields.IntField(default=0)
+
 
 async def connect_database():
     await Tortoise.init(

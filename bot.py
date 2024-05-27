@@ -8,6 +8,7 @@ import reload
 from db import Config
 import db
 
+
 async def main():
     # Connect to the database
     await db.connect_database()
@@ -67,6 +68,7 @@ async def main():
     # Stop the bot and user clients
     await bot.stop()
     await user.stop()
+
 
 # Run the main function asynchronously
 run_async(main())

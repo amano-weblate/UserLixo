@@ -16,6 +16,7 @@ langs = [
 
 default_language = "en-US"
 
+
 def cache_localizations(files: List[str]) -> Dict[str, Dict[str, Dict[str, str]]]:
     ldict = {lang: {} for lang in langs}
     for file in files:
@@ -25,6 +26,7 @@ def cache_localizations(files: List[str]) -> Dict[str, Dict[str, Dict[str, str]]
             ldict[lang] = yaml.safe_load(f)
     return ldict
 
+
 jsons = []
 
 for locale in langs:
@@ -32,8 +34,8 @@ for locale in langs:
 
 langdict = cache_localizations(jsons)
 
-def use_lang():
 
+def use_lang():
     def decorator(func):
         @wraps(func)
         async def wrapper(client, message):
@@ -51,10 +53,7 @@ def use_lang():
 
     return decorator
 
-def get_locale_string(
-    language: str, key: str
-) -> str:
-    res: str = (
-        langdict[language].get(key) or key
-    )
+
+def get_locale_string(language: str, key: str) -> str:
+    res: str = langdict[language].get(key) or key
     return res

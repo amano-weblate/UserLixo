@@ -17,6 +17,7 @@ timeout = httpx.Timeout(40, pool=None)
 
 http = httpx.AsyncClient(http2=True, timeout=timeout)
 
+
 def pretty_size(size_bytes):
     if size_bytes == 0:
         return "0B"
@@ -25,6 +26,7 @@ def pretty_size(size_bytes):
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
     return f"{s} {size_name[i]}"
+
 
 async def meval(code, local_vars):
     # Don't clutter locals
@@ -112,6 +114,7 @@ def aiowrap(fn: Callable) -> Coroutine:
         return loop.run_in_executor(None, wrapped)
 
     return decorator
+
 
 @aiowrap
 def backup_sources(output_file=None):

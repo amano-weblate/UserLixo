@@ -5,6 +5,7 @@ from pyrogram.types import Message
 from locales import use_lang
 import io
 
+
 @Client.on_message(filters.command("cmd", prefixes=".") & filters.sudoers)
 @use_lang()
 async def cmd(_, m: Message, t):

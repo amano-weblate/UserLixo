@@ -6,6 +6,7 @@ import wikipedia
 from db import Config, Message
 from config import bot
 
+
 @Client.on_message(filters.command("wiki", prefixes=".") & filters.sudoers)
 @use_lang()
 async def wiki(c: Client, m: Message, t):
@@ -14,7 +15,7 @@ async def wiki(c: Client, m: Message, t):
     lang = lang.value if lang else "pt"
     wik = wikipedia.search(txt)
     wikipedia.set_lang(lang)
-    
+
     if wik:
         mes = await Message.create(text=txt, keyboard=wik)
         ter = [(a, f"wiki_{i}_{mes.key}") for i, a in enumerate(wik)]
@@ -23,6 +24,7 @@ async def wiki(c: Client, m: Message, t):
         await m.reply(t("wiki_choose"), reply_markup=keyb)
     else:
         await m.edit(t("wiki_no_results").format(query=txt))
+
 
 @Client.on_message(filters.command("dwiki", prefixes=".") & filters.sudoers)
 @use_lang()
@@ -39,6 +41,7 @@ async def dwiki(c: Client, m: Message, t):
     else:
         await m.edit(t("wiki_no_results").format(query=txt))
 
+
 @bot.on_callback_query(filters.regex(r"^wiki_") & filters.sudoers)
 @use_lang()
 async def wiki_cq(_, cq, t):
@@ -54,12 +57,11 @@ async def wiki_cq(_, cq, t):
     await cq.edit(
         wik.content[:2096],
         reply_markup=InlineKeyboardMarkup(
-            [
-                [InlineKeyboardButton(t("read_more"), url=wik.url)]
-            ]
+            [[InlineKeyboardButton(t("read_more"), url=wik.url)]]
         ),
     )
     await (await Message.get(key=mes.key)).delete()
+
 
 @bot.on_callback_query(filters.regex(r"^dwiki_") & filters.sudoers)
 @use_lang()
@@ -76,9 +78,7 @@ async def dwiki_cq(_, cq, t):
     await cq.edit(
         wik.content[:2096],
         reply_markup=InlineKeyboardMarkup(
-            [
-                [InlineKeyboardButton(t("read_more"), url=wik.url)]
-            ]
+            [[InlineKeyboardButton(t("read_more"), url=wik.url)]]
         ),
     )
     await (await Message.get(key=mes.key)).delete()

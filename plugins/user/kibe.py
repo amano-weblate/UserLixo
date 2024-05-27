@@ -17,7 +17,12 @@ from pyrogram.raw.types import (
     InputStickerSetItem,
     InputStickerSetShortName,
 )
-from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 
 from config import bot, plugins, user
 from db import Config, sticker
@@ -32,7 +37,7 @@ async def kibe(c: Client, m: Message, t):
 
     # Check if the command has an argument
     if len(m.text.split(" ")) > 1:
-        emoji = m.text.split(" ")[1] 
+        emoji = m.text.split(" ")[1]
     # Check if the replied message is a sticker
     elif rmsg and rmsg.sticker:
         emoji = rmsg.sticker.emoji
@@ -44,16 +49,17 @@ async def kibe(c: Client, m: Message, t):
             emoji = "🤔"
         else:
             emoji = settings.valuej["emoji"]
-    
+
     # If the message was replied to, create the keyboard
     if rmsg:
         keyb = [
             [
                 (t("sticker"), f"kibes_{m.chat.id}_{rmsg.id}_{emoji}"),
                 (t("emoji"), f"kibee_{m.chat.id}_{rmsg.id}_{emoji}"),
-            ], [
+            ],
+            [
                 (t("both"), f"kibea_{m.chat.id}_{rmsg.id}_{emoji}"),
-            ]
+            ],
         ]
 
         await m.reply(t("kibe_choose"), reply_markup=keyb, reply_to_message_id=rmsg.id)
@@ -78,20 +84,20 @@ async def kibe_callback(_, q: CallbackQuery, t):
     if q.data.startswith("kibes") or q.data.startswith("kibea"):
         res = await kibes(msg, q, t, emoji, issticker=True)
         keyb += [
-                    InlineKeyboardButton(
-                        text=t("kibes_open"),
-                        url=f"t.me/addstickers/{res}",
-                    )
-                ]
+            InlineKeyboardButton(
+                text=t("kibes_open"),
+                url=f"t.me/addstickers/{res}",
+            )
+        ]
     # If the callback data starts with "kibee" or "kibea", create an emoji
     if q.data.startswith("kibee") or q.data.startswith("kibea"):
         res = await kibes(msg, q, t, emoji, issticker=False)
         keyb += [
-                    InlineKeyboardButton(
-                        text=t("kibee_open"),
-                        url=f"t.me/addemoji/{res}",
-                    )
-                ]
+            InlineKeyboardButton(
+                text=t("kibee_open"),
+                url=f"t.me/addemoji/{res}",
+            )
+        ]
 
     # Edit the original message to indicate that the process is done
     await q.edit(t("kibe_done"), reply_markup=InlineKeyboardMarkup([keyb]))
@@ -156,22 +162,28 @@ async def kibes(rmessage: Message, q: CallbackQuery, t, emoji, issticker):
 
     # If the media type, file ID, and file extension are set, proceed with the process
     if media_type and file_id and file_extension:
-        photo = await user.download_media(file_id, file_name=f"./{ctime}{file_extension}")
+        photo = await user.download_media(
+            file_id, file_name=f"./{ctime}{file_extension}"
+        )
         packn = await sticker.get(type=media_type if issticker else f"{media_type}e")
 
     # Set the pack name and mime type based on the media type
     if media_type == "video":
         packname = "video"
-        mime_type="video/webm"
+        mime_type = "video/webm"
         await q.edit(t("kibe_resize_video"))
-        photo = await resize_video(photo, ctime, (512, 512) if issticker else (100, 100))
+        photo = await resize_video(
+            photo, ctime, (512, 512) if issticker else (100, 100)
+        )
     elif media_type == "animated":
-        mime_type="application/x-tgsticker"
+        mime_type = "application/x-tgsticker"
         packname = "animated"
     else:
         await q.edit(t("kibe_resize_photo"))
-        photo = await resize_photo(photo, ctime, (512, 512) if issticker else (100, 100))
-        mime_type="image/png"
+        photo = await resize_photo(
+            photo, ctime, (512, 512) if issticker else (100, 100)
+        )
+        mime_type = "image/png"
         packname = ""
     namp = "" if issticker else "_emoji"
     packnick = f"@{user.me.username}'s kibe {namp} pack V{packn.num}.0 {packname}"
@@ -230,25 +242,25 @@ async def kibes(rmessage: Message, q: CallbackQuery, t, emoji, issticker):
         # If the pack doesn't exist, create it
         await q.edit(t("kibe_creating"))
         await bot.invoke(
-                CreateStickerSet(
-                    user_id=peer,
-                    title=packnick,
-                    short_name=packname,
-                    stickers=[
-                        InputStickerSetItem(
-                            document=InputDocument(
-                                id=stkr_file.id,
-                                access_hash=stkr_file.access_hash,
-                                file_reference=stkr_file.file_reference,
-                            ),
-                            emoji=emoji,
-                        )
-                    ],
-                    animated=True if media_type == "animated" else False,
-                    videos=True if media_type == "video" else False,
-                    emojis=False if issticker else True,
-                )
+            CreateStickerSet(
+                user_id=peer,
+                title=packnick,
+                short_name=packname,
+                stickers=[
+                    InputStickerSetItem(
+                        document=InputDocument(
+                            id=stkr_file.id,
+                            access_hash=stkr_file.access_hash,
+                            file_reference=stkr_file.file_reference,
+                        ),
+                        emoji=emoji,
+                    )
+                ],
+                animated=True if media_type == "animated" else False,
+                videos=True if media_type == "video" else False,
+                emojis=False if issticker else True,
             )
+        )
     # Remove the downloaded file and delete the message from the bot's chat
     os.remove(photo)
     await bot.delete_messages(chat_id=user.me.id, message_ids=msg_id)
@@ -282,7 +294,7 @@ async def resize_photo(photo, ctime, maxsize):
     else:
         image.thumbnail(maxsize)
         # Create a new image with transparent background
-        new_image = Image.new('RGBA', (100, 100), (0, 0, 0, 0))
+        new_image = Image.new("RGBA", (100, 100), (0, 0, 0, 0))
         new_image.paste(image, (0, 0))
         image = new_image
 
@@ -299,7 +311,9 @@ async def resize_video(video, ctime, maxsize):
     # Open the video file
     cap = cv2.VideoCapture(video)
     # If the max size is 512 and the width of the video is greater than or equal to the height
-    if maxsize[1] == 512 and (cap.get(cv2.CAP_PROP_FRAME_WIDTH) >= cap.get(cv2.CAP_PROP_FRAME_HEIGHT)):
+    if maxsize[1] == 512 and (
+        cap.get(cv2.CAP_PROP_FRAME_WIDTH) >= cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    ):
         scale = -1
     else:
         scale = maxsize[1]
@@ -334,19 +348,19 @@ plugins.append("kibe")
 @use_lang()
 async def config_kibe(c: Client, m: CallbackQuery, t):
     # Edit the message to display the settings for the "kibe" plugin
-    await m.edit(t("Kibe_settings"), reply_markup=InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton(
-                text=t("kibe_emoji"),
-                callback_data="config_plugin_kibe_emoji"
-            )
-        ], [
-            InlineKeyboardButton(
-                text=t("back"),
-                callback_data="config_plugins"
-            )
-        ]
-    ]))
+    await m.edit(
+        t("Kibe_settings"),
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        text=t("kibe_emoji"), callback_data="config_plugin_kibe_emoji"
+                    )
+                ],
+                [InlineKeyboardButton(text=t("back"), callback_data="config_plugins")],
+            ]
+        ),
+    )
 
 
 @bot.on_callback_query(filters.regex(r"config_plugin_kibe_emoji"))
@@ -377,25 +391,27 @@ async def config_kibe_emoji(c: Client, cq: CallbackQuery, t):
 
     # If the user sends "/cancel", cancel the operation and go back
     if text == "/cancel":
-        return await cq.edit_message_text(t("canceled"), reply_markup=InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton(
-                    text=t("back"),
-                    callback_data="config_plugin_kibe"
-                )
-            ]
-        ]))
+        return await cq.edit_message_text(
+            t("canceled"),
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text=t("back"), callback_data="config_plugin_kibe"
+                        )
+                    ]
+                ]
+            ),
+        )
 
     # Update the settings with the new emoji
     settings["emoji"] = text
     await Config.get(id="kibe").update(valuej=settings)
 
     # Confirm to the user that the emoji has been set
-    await cq.edit_message_text(t("kibe_emoji_set").format(emoji=text), reply_markup=InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton(
-                text="Back",
-                callback_data="config_plugin_kibe"
-            )
-        ]
-    ]))
+    await cq.edit_message_text(
+        t("kibe_emoji_set").format(emoji=text),
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton(text="Back", callback_data="config_plugin_kibe")]]
+        ),
+    )

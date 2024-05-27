@@ -6,14 +6,21 @@ import pyrogram
 from db import Message, Config
 from config import user
 
-async def query_edit(self, text: str, reply_markup=None, answer_kwargs={}, *args, **kwargs):
+
+async def query_edit(
+    self, text: str, reply_markup=None, answer_kwargs={}, *args, **kwargs
+):
     with contextlib.suppress(BaseException):
         await self.answer(**answer_kwargs)
-    return await self.edit_message_text(text=text, reply_markup=reply_markup, *args, **kwargs)
+    return await self.edit_message_text(
+        text=text, reply_markup=reply_markup, *args, **kwargs
+    )
 
 
 def remove_keyboard(self, message_id=None, *args, **kwargs):
-    return self._client.edit_message_reply_markup(self.chat.id, message_id or self.id, {})
+    return self._client.edit_message_reply_markup(
+        self.chat.id, message_id or self.id, {}
+    )
 
 
 async def edit_text(self, text: str, reply_markup=None, *args, **kwargs):
@@ -56,12 +63,14 @@ async def reply_text(self, text: str, reply_markup=None, *args, **kwargs):
         reply_to_message_id=reply_to,
     )
 
+
 async def filter_sudoers_logic(flt, c, u):
     if not u.from_user:
         return None
     usr = u.from_user
     sudoers = (await Config.get(id="sudoers")).valuej
     return usr.id in sudoers or user.me.id == usr.id
+
 
 async def main():
     pyrogram.types.CallbackQuery.edit = query_edit
@@ -70,6 +79,7 @@ async def main():
     pyrogram.types.Message.edit = edit_text
     if not await Config.get_or_none(id="sudoers"):
         await Config.create(id="sudoers", valuej=[])
+
 
 filter_sudoers = filters.create(filter_sudoers_logic, "FilterSudoers")
 pyrogram.filters.sudoers = filter_sudoers

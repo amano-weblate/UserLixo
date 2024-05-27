@@ -2,6 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from db import Notes
 
+
 @Client.on_message(filters.command("note", prefixes=".") & filters.sudoers)
 async def onote(c: Client, m: Message):
     parts = m.text.split(" ", 2)
@@ -32,7 +33,9 @@ async def onote(c: Client, m: Message):
                     return await m.edit("Non-supported media")
                 await Notes.get(name=note_key).update(file=media.file_id)
                 await Notes.get(name=note_key).update(type="media")
-                await Notes.get(name=note_key).update(content=msg.caption if msg.caption else "")
+                await Notes.get(name=note_key).update(
+                    content=msg.caption if msg.caption else ""
+                )
 
                 await m.edit(f"Note {note_key} saved")
         else:
@@ -42,10 +45,8 @@ async def onote(c: Client, m: Message):
                     await m.edit(exists.content)
                 elif exists.type == "media":
                     await m.delete()
-                    await c.send_cached_media(
-                        m.chat.id,
-                        exists.file
-                    )
+                    await c.send_cached_media(m.chat.id, exists.file)
+
 
 @Client.on_message(filters.regex("^#") & filters.sudoers)
 async def onsharp(c: Client, m: Message):
@@ -66,8 +67,6 @@ async def onsharp(c: Client, m: Message):
                 m.chat.id,
                 exists.file,
                 reply_to_message_id=(
-                    m.reply_to_message.id
-                    if m.reply_to_message
-                    else None
+                    m.reply_to_message.id if m.reply_to_message else None
                 ),
             )
