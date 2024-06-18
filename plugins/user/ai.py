@@ -1,26 +1,27 @@
+import io
 import json
 import os
 import re
+from tempfile import NamedTemporaryFile
 
+import markdown
+from BingImageCreator import ImageGen
 from EdgeGPT.EdgeGPT import Chatbot, ConversationStyle
+from gemini import Gemini
 from pyrogram import Client, filters
 from pyrogram.types import (
-    Message,
-    InputMediaPhoto,
     CallbackQuery,
-    InlineKeyboardMarkup,
     InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InputMediaPhoto,
+    Message,
 )
-from BingImageCreator import ImageGen
-import io
-from tempfile import NamedTemporaryFile
-from utils import http
-from locales import use_lang
-from gemini import Gemini
-import markdown
 from telegraph.aio import Telegraph
-from config import plugins, bot
+
+from config import bot, plugins
 from db import Config
+from locales import use_lang
+from utils import http
 
 bing_instances = {}
 bard_instances = {}
@@ -191,25 +192,31 @@ async def bingimg(c: Client, m: Message, t):
 
     try:
         urls = img_gen.get_images(str(text))
+        photos = []
+        n = 0
         for aurl in urls:
-            if aurl.endswith(".svg"):
-                urls.remove(aurl)
+            x = await http.head(aurl)
+            print(aurl, x.headers.get("Content-Type", ""))
+            if x.headers.get("Content-Type", "") == "image/jpeg":
+                print(aurl)
+                photos.append(
+                    InputMediaPhoto(
+                        io.BytesIO((await http.get(aurl)).content),
+                        caption=text if n == 0 else None,
+                    )
+                )
+                n += 1
 
     except Exception as e:
         return await m.edit(str(e))
 
-    photos = [
-        InputMediaPhoto(
-            io.BytesIO((await http.get(i)).content), caption=text if n == 0 else None
-        )
-        for n, i in enumerate(urls)
-    ]
     if m.reply_to_message:
-        if m.from_user.is_self:
-            await m.delete()
         await m.reply_to_message.reply_media_group(photos)
     else:
         await m.reply_media_group(photos)
+
+    if m.from_user.is_self:
+        await m.delete()
 
 
 @Client.on_message(
