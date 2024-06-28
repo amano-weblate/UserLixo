@@ -227,15 +227,21 @@ async def bardc(c: Client, m: Message, t):
     teleimg = None
     mmode = None
     try:
+        cookies = json.load(open("bard_coockies.json", "r"))
+        cookies = {cookie["name"]: cookie["value"] for cookie in cookies}
         if m.reply_to_message_id and m.reply_to_message_id in bard_instances:
-            bot, taccount, path, mmode = bard_instances.pop(m.reply_to_message_id)
+            olbot, taccount, path, mmode = bard_instances.pop(m.reply_to_message_id)
+            bot = Gemini(cookies=cookies)
+            bot._sid = olbot._sid
+            bot._rcid = olbot._rcid
+            bot._rid = olbot._rid
+            bot._cid = olbot._cid
+            bot._reqid = olbot._reqid + 100000
             mtext = m.text
         else:
             taccount = Telegraph()
             await taccount.create_account(short_name="Gemini")
             path = None
-            cookies = json.load(open("bard_coockies.json", "r"))
-            cookies = {cookie["name"]: cookie["value"] for cookie in cookies}
             bot = Gemini(cookies=cookies)
             if m.reply_to_message and m.reply_to_message.text:
                 mtext = m.reply_to_message.text
