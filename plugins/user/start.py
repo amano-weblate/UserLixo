@@ -1,4 +1,4 @@
-from pyrogram import Client, filters
+from hydrogram import Client, filters
 
 
 @Client.on_message(filters.command("start", prefixes=".") & filters.sudoers)

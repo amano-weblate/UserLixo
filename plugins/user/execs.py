@@ -4,9 +4,10 @@ import re
 import traceback
 from contextlib import redirect_stdout
 
-from pyrogram import Client, filters
-from pyrogram.enums import ParseMode
-from pyrogram.types import Message
+from hydrogram import Client, filters
+from hydrogram.enums import ParseMode
+from hydrogram.types import Message
+
 from locales import use_lang
 
 
@@ -27,10 +28,14 @@ async def execs(c: Client, m: Message, t):
                 html.escape(traceback.format_exc()), parse_mode=ParseMode.HTML
             )
 
-    if strio.getvalue():
-        out = html.escape(strio.getvalue())
+    # Decodifica o texto para garantir que os caracteres HTML especiais sejam corretamente exibidos
+    decoded_output = html.unescape(strio.getvalue())
+
+    if decoded_output:
+        out = html.escape(decoded_output)
     else:
         out = t("exec_seucess")
+
     if len(out) > 4096:
         with io.BytesIO(str.encode(out)) as out_file:
             out_file.name = "exec.txt"

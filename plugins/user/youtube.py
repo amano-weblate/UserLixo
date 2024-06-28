@@ -5,15 +5,15 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from pyrogram import Client, filters
-from pyrogram.errors import BadRequest
-from pyrogram.helpers import ikb
-from pyrogram.types import CallbackQuery, Message
+from hydrogram import Client, filters
+from hydrogram.errors import BadRequest
+from hydrogram.helpers import ikb
+from hydrogram.types import CallbackQuery, Message
 from yt_dlp import YoutubeDL
-from utils import aiowrap, http, pretty_size
-from config import bot, user
 
+from config import bot, user
 from locales import use_lang
+from utils import aiowrap, http, pretty_size
 
 YOUTUBE_REGEX = re.compile(
     r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/)|\.be\/|)([\w\-\_]*)(&(amp;)?[\w\?=]*)?"

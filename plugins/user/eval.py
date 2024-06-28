@@ -1,11 +1,11 @@
 import html
+import io
 import traceback
 
-from pyrogram import Client, filters
-from pyrogram.types import Message
+from hydrogram import Client, filters
+from hydrogram.types import Message
 
 from utils import meval
-import io
 
 
 @Client.on_message(filters.command("eval", prefixes=".") & filters.sudoers)

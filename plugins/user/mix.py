@@ -1,18 +1,19 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message, CallbackQuery
-from pyrogram.helpers import ikb
-from locales import use_lang
-from pyrogram.enums import UserStatus, MessageEntityType
-from datetime import datetime
-from pathlib import Path
-from db import Config
-from config import bot
+import asyncio
 import os
 import sys
-import asyncio
-from utils import http
-from typing import Union
 from datetime import datetime
+from pathlib import Path
+from typing import Union
+
+from hydrogram import Client, filters
+from hydrogram.enums import MessageEntityType, UserStatus
+from hydrogram.helpers import ikb
+from hydrogram.types import CallbackQuery, Message
+
+from config import bot
+from db import Config
+from locales import use_lang
+from utils import http
 
 
 @Client.on_message(filters.command("on", prefixes=".") & filters.sudoers)

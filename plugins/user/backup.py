@@ -1,12 +1,12 @@
 import os
 from datetime import datetime
 
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from config import bot
-from locales import use_lang
+from hydrogram import Client, filters
+from hydrogram.types import Message
 
 import utils
+from config import bot
+from locales import use_lang
 
 
 @Client.on_message(filters.command("backup", prefixes=".") & filters.sudoers)

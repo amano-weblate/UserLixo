@@ -1,7 +1,7 @@
-from pyrogram import Client, filters
-from pyrogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
+from hydrogram import Client, filters
+from hydrogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 from db import Message
-from pyrogram.helpers import ikb
+from hydrogram.helpers import ikb
 
 @Client.on_inline_query(filters.regex(r"^(?P<index>\d+)"))
 async def on_index(c: Client, iq: InlineQuery):

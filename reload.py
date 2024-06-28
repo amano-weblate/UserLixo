@@ -1,10 +1,11 @@
 import contextlib
 
-from pyrogram import types, filters
-from pyrogram.helpers import bki, ikb
-import pyrogram
-from db import Message, Config
+import hydrogram
+from hydrogram import filters, types
+from hydrogram.helpers import bki, ikb
+
 from config import user
+from db import Config, Message
 
 
 async def query_edit(
@@ -73,13 +74,13 @@ async def filter_sudoers_logic(flt, c, u):
 
 
 async def main():
-    pyrogram.types.CallbackQuery.edit = query_edit
-    pyrogram.types.Message.remove_keyboard = remove_keyboard
-    pyrogram.types.Message.reply = reply_text
-    pyrogram.types.Message.edit = edit_text
+    hydrogram.types.CallbackQuery.edit = query_edit
+    hydrogram.types.Message.remove_keyboard = remove_keyboard
+    hydrogram.types.Message.reply = reply_text
+    hydrogram.types.Message.edit = edit_text
     if not await Config.get_or_none(id="sudoers"):
         await Config.create(id="sudoers", valuej=[])
 
 
 filter_sudoers = filters.create(filter_sudoers_logic, "FilterSudoers")
-pyrogram.filters.sudoers = filter_sudoers
+hydrogram.filters.sudoers = filter_sudoers

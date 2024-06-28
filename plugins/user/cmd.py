@@ -1,9 +1,10 @@
 import asyncio
-
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from locales import use_lang
 import io
+
+from hydrogram import Client, filters
+from hydrogram.types import Message
+
+from locales import use_lang
 
 
 @Client.on_message(filters.command("cmd", prefixes=".") & filters.sudoers)

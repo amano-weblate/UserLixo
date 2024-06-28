@@ -8,8 +8,8 @@ import markdown
 from BingImageCreator import ImageGen
 from EdgeGPT.EdgeGPT import Chatbot, ConversationStyle
 from gemini import Gemini
-from pyrogram import Client, filters
-from pyrogram.types import (
+from hydrogram import Client, filters
+from hydrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,

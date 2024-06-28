@@ -1,11 +1,12 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from locales import use_lang
-from db import Fake
-from pyrogram.enums import MessageEntityType
 import os
-from pyrogram import types
 import re
+
+from hydrogram import Client, filters, types
+from hydrogram.enums import MessageEntityType
+from hydrogram.types import Message
+
+from db import Fake
+from locales import use_lang
 
 
 # This function is triggered when the ".fake" command is sent by a sudoer

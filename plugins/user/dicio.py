@@ -1,6 +1,7 @@
 import dicioinformal
-from pyrogram import Client, filters
-from pyrogram.types import Message, CallbackQuery
+from hydrogram import Client, filters
+from hydrogram.types import CallbackQuery, Message
+
 from config import bot
 from locales import use_lang
 

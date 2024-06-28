@@ -3,8 +3,9 @@ import os
 from io import BytesIO
 
 from gtts import gTTS, lang
-from pyrogram import Client, filters
-from pyrogram.types import Message, CallbackQuery
+from hydrogram import Client, filters
+from hydrogram.types import CallbackQuery, Message
+
 from config import bot, user
 
 try:

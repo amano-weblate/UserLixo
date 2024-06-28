@@ -1,10 +1,11 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from locales import use_lang
 import desciclopedia
 import wikipedia
-from db import Config, Message
+from hydrogram import Client, filters
+from hydrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+
 from config import bot
+from db import Config, Message
+from locales import use_lang
 
 
 @Client.on_message(filters.command("wiki", prefixes=".") & filters.sudoers)

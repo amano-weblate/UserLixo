@@ -1,11 +1,14 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message, CallbackQuery
-from locales import use_lang, langdict, get_locale_string
 from functools import partial
-from pyrogram.helpers import ikb
-from db import Config
 from typing import Union
+
+from hydrogram import Client, filters
+from hydrogram.helpers import ikb
+from hydrogram.types import CallbackQuery, Message
+
 from config import plugins
+from db import Config
+from locales import get_locale_string, langdict, use_lang
+
 
 @Client.on_message(filters.command("config"))
 @Client.on_callback_query(filters.regex(r"\bconfig\b"))

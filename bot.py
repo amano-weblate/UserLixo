@@ -1,12 +1,14 @@
-from pathlib import Path
 import os
-from pyrogram import idle
+from pathlib import Path
+
+from hydrogram import idle
 from tortoise import run_async
-from config import bot, user
-from version import ascii_art, version
-import reload
-from db import Config
+
 import db
+import reload
+from config import bot, user
+from db import Config
+from version import ascii_art, version
 
 
 async def main():

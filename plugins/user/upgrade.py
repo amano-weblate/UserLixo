@@ -1,8 +1,10 @@
 import asyncio
 import os
 import sys
-from pyrogram import Client, filters
-from pyrogram.types import Message
+
+from hydrogram import Client, filters
+from hydrogram.types import Message
+
 from db import Config
 from locales import use_lang
 

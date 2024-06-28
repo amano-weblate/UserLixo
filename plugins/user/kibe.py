@@ -4,25 +4,25 @@ import os
 import time
 
 import cv2
-from PIL import Image
-from pyrogram import Client, filters
-from pyrogram.errors import ListenerTimeout, StickersetInvalid
-from pyrogram.raw import functions, types
-from pyrogram.raw.functions.messages import SendMedia
-from pyrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
-from pyrogram.raw.types import (
+from hydrogram import Client, filters
+from hydrogram.errors import ListenerTimeout, StickersetInvalid
+from hydrogram.raw import functions, types
+from hydrogram.raw.functions.messages import SendMedia
+from hydrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
+from hydrogram.raw.types import (
     DocumentAttributeFilename,
     InputDocument,
     InputMediaUploadedDocument,
     InputStickerSetItem,
     InputStickerSetShortName,
 )
-from pyrogram.types import (
+from hydrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Message,
 )
+from PIL import Image
 
 from config import bot, plugins, user
 from db import Config, sticker
