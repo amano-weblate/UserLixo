@@ -6,4 +6,5 @@ config.py
 downloads/
 cookies.json
 venv/
+.venv/
 db.json
