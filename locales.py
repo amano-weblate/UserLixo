@@ -55,5 +55,5 @@ def use_lang():
 
 
 def get_locale_string(language: str, key: str) -> str:
-    res: str = langdict[language].get(key) or key
+    res: str = langdict[language].get(key) or langdict[default_language].get(key) or key
     return res
