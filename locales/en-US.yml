@@ -86,6 +86,9 @@ ai_mode_creative: "Creative"
 ai_mode_balanced: "Balanced"
 ai_mode_precise: "Precise"
 ai_mode_changed: "BingAI style changed to {style} style."
+ai_login: "Login to BingAI"
+ai_login_text: "Please press the button below to log in. After completing the login, send the final URL here. For example: 'https://login.live.com/oauth20_desktop.srf?code=xxx&state=yyy&lc=zzz'. The important thing is to obtain this 'code' to log in"
+ai_login_success: "Login successful!"
 
 # upgrade.py
 not_git_repo: "Error: You must be inside a git repository to upgrade."

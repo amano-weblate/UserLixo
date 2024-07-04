@@ -1,5 +1,6 @@
 https://github.com/hydrogram/hydrogram/archive/dev.zip
 git+https://github.com/F33RNI/EdgeGPT
+NewBingImageCreator
 tortoise-orm
 python-gemini-api
 tgcrypto

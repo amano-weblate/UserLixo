@@ -1,11 +1,14 @@
+import base64
 import io
 import json
 import os
 import re
+from datetime import datetime
 from tempfile import NamedTemporaryFile
 
 import markdown
-from BingImageCreator import ImageGen
+from config import bot, plugins
+from db import Config
 from EdgeGPT.EdgeGPT import Chatbot, ConversationStyle
 from gemini import Gemini
 from hydrogram import Client, filters
@@ -13,15 +16,17 @@ from hydrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    InputMediaDocument,
     InputMediaPhoto,
     Message,
 )
-from telegraph.aio import Telegraph
-
-from config import bot, plugins
-from db import Config
 from locales import use_lang
+from PIL import Image
+from pyrogram.errors import ListenerTimeout
+from telegraph.aio import Telegraph
 from utils import http
+
+from NewBingImageCreator.aio import ImageCreator
 
 bing_instances = {}
 bard_instances = {}
@@ -97,13 +102,24 @@ async def bing(c: Client, m: Message, t):
             bot, taccount, path, mmode = bing_instances.pop(m.reply_to_message_id)
             mtext = m.text
         else:
-            bot = (
-                await Chatbot.create(
-                    cookies=json.load(open("./cookies.json", "r", encoding="utf-8"))
-                )
-                if os.path.exists("./cookies.json")
-                else await Chatbot.create()
-            )
+            con = await Config.get_or_none(id="bing")
+            if not con:
+                return await m.edit(t("ai_not_logged_in"))
+            ic = ImageCreator()
+            ic.scope = con.valuej["scope"]
+            ic.access_token = con.valuej["access_token"]
+            ic.vrefresh_token = con.valuej["vrefresh_token"]
+            ic.expires_in = datetime.fromtimestamp(con.valuej["expires_in"])
+            await ic.get_ms_token()
+            await ic.get_ms_cokies()
+            con.valuej["expires_in"] = ic.expires_in.timestamp()
+            con.valuej["access_token"] = ic.access_token
+            await Config.filter(id="bing").update(valuej=json.dumps(con.valuej))
+            cookies = ic.copilot_cokies.split("; ")
+            cookies = [
+                {"name": i.split("=")[0], "value": i.split("=")[1]} for i in cookies
+            ]
+            bot = Chatbot(cookies=cookies)
             taccount = Telegraph()
             await taccount.create_account(short_name="EdgeGPT")
             path = None
@@ -176,39 +192,29 @@ async def bingimg(c: Client, m: Message, t):
         return await m.edit(t("ai_no_text"))
 
     await m.edit(t("ai_making_image").format(text=text))
-    cookies = json.load(open("./cookies.json", "r", encoding="utf-8"))
-    cookie_u = next(
-        (cookie["value"] for cookie in cookies if cookie["name"] == "_U"), None
-    )
-    cookie_SRCHHPGUSR = next(
-        (cookie["value"] for cookie in cookies if cookie["name"] == "SRCHHPGUSR"), None
-    )
-    img_gen = ImageGen(
-        auth_cookie=cookie_u,
-        auth_cookie_SRCHHPGUSR=cookie_SRCHHPGUSR,
-        quiet=True,
-        all_cookies=cookies,
-    )
 
-    try:
-        urls = img_gen.get_images(str(text))
-        photos = []
-        n = 0
-        for aurl in urls:
-            x = await http.head(aurl)
-            print(aurl, x.headers.get("Content-Type", ""))
-            if x.headers.get("Content-Type", "") == "image/jpeg":
-                print(aurl)
-                photos.append(
-                    InputMediaPhoto(
-                        io.BytesIO((await http.get(aurl)).content),
-                        caption=text if n == 0 else None,
-                    )
-                )
-                n += 1
+    con = await Config.get_or_none(id="bing")
+    if not con:
+        return await m.edit(t("ai_not_logged_in"))
+    ic = ImageCreator()
+    ic.scope = con.valuej["scope"]
+    ic.access_token = con.valuej["access_token"]
+    ic.vrefresh_token = con.valuej["vrefresh_token"]
+    ic.expires_in = datetime.fromtimestamp(con.valuej["expires_in"])
+    await ic.get_ms_token()
+    await ic.get_ms_cokies()
+    con.valuej["expires_in"] = ic.expires_in.timestamp()
+    con.valuej["access_token"] = ic.access_token
+    await Config.filter(id="bing").update(valuej=json.dumps(con.valuej))
+    urls = await ic.gen_image(text, "PT", False)
 
-    except Exception as e:
-        return await m.edit(str(e))
+    photos = []
+
+    for n, url in enumerate(urls):
+        x = await http.get(url["thumbnailUrl"])
+        photos.append(
+            InputMediaPhoto(io.BytesIO(x.content), caption=text if n == 0 else None)
+        )
 
     if m.reply_to_message:
         await m.reply_to_message.reply_media_group(photos)
@@ -217,6 +223,51 @@ async def bingimg(c: Client, m: Message, t):
 
     if m.from_user.is_self:
         await m.delete()
+
+
+# This function is triggered when the ".bingsticker" command is sent by a sudoer
+@Client.on_message(filters.command("bingsticker", prefixes=".") & filters.sudoers)
+@use_lang()
+async def bingstr(c: Client, m: Message, t):
+    text = (
+        m.text.split(" ", maxsplit=1)[1]
+        if len(m.text.split(" ", maxsplit=1)) >= 2
+        else m.reply_to_message.text
+        if m.reply_to_message
+        else None
+    )
+    if not text:
+        return await m.edit(t("ai_no_text"))
+
+    await m.edit(t("ai_making_image").format(text=text))
+
+    con = await Config.get_or_none(id="bing")
+    if not con:
+        return await m.edit(t("ai_not_logged_in"))
+    ic = ImageCreator()
+    ic.scope = con.valuej["scope"]
+    ic.access_token = con.valuej["access_token"]
+    ic.vrefresh_token = con.valuej["vrefresh_token"]
+    ic.expires_in = datetime.fromtimestamp(con.valuej["expires_in"])
+    await ic.get_ms_token()
+    await ic.get_ms_cokies()
+    con.valuej["expires_in"] = ic.expires_in.timestamp()
+    con.valuej["access_token"] = ic.access_token
+    await Config.filter(id="bing").update(valuej=json.dumps(con.valuej))
+    urls = await ic.gen_sticker(text, "PT", True)
+
+    photos = []
+
+    for n, url in enumerate(urls):
+        img_base64 = url["imageBackgroundRemovedBase64"]
+        img_bytes = base64.b64decode(img_base64)
+        image = Image.open(io.BytesIO(img_bytes))
+        with NamedTemporaryFile(suffix=".webp") as f:
+            image.save(f.name, "WEBP")
+            if m.reply_to_message:
+                await m.reply_to_message.reply_sticker(f.name)
+            else:
+                await m.reply_sticker(f.name)
 
 
 @Client.on_message(
@@ -315,14 +366,18 @@ plugins.append("bing")
 @bot.on_callback_query(filters.regex(r"\bconfig_plugin_bing\b"))
 @use_lang()
 async def config_bing(c: Client, cq: CallbackQuery, t):
-    await cq.edit(
+    await cq.edit_message_text(
         t("bing_settings"),
         reply_markup=InlineKeyboardMarkup(
             [
                 [
                     InlineKeyboardButton(
                         text=t("ai_mode"), callback_data="config_plugin_ai_mode"
-                    )
+                    ),
+                    InlineKeyboardButton(
+                        text=t("ai_login"),
+                        callback_data="config_plugin_bing_login",
+                    ),
                 ],
                 [InlineKeyboardButton(text=t("back"), callback_data="config_plugins")],
             ]
@@ -378,6 +433,51 @@ async def config_ai_modes(c: Client, cq: CallbackQuery, t):
             [[InlineKeyboardButton(text=t("back"), callback_data="config_plugin_bing")]]
         ),
     )
+
+
+@bot.on_callback_query(filters.regex(r"\bconfig_plugin_bing_login\b"))
+@use_lang()
+async def config_bing_login(c: Client, cq: CallbackQuery, t):
+    login_url = ImageCreator().login_url
+    kb = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(text=t("ai_login"), url=login_url),
+            ],
+            [InlineKeyboardButton(text=t("back"), callback_data="config_plugin_bing")],
+        ]
+    )
+    await cq.edit(t("ai_login_text"), reply_markup=kb)
+    cmessage = None
+
+    while cmessage is None:
+        try:
+            cmessage = await cq.message.chat.listen(filters.text & filters.sudoers)
+        except ListenerTimeout:
+            return
+
+    if cmessage.text.startswith("https://login.live.com/oauth20_desktop"):
+        code = cmessage.text.split("?code=")[1].split("&")[0]
+        ic = ImageCreator()
+        await ic.login(code)
+        cookies = dict(
+            scope=ic.scope,
+            access_token=ic.access_token,
+            vrefresh_token=ic.vrefresh_token,
+            expires_in=ic.expires_in.timestamp(),
+        )
+        await Config.get_or_create(id="bing")
+        await Config.filter(id="bing").update(valuej=json.dumps(cookies))
+        kb = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        text=t("back"), callback_data="config_plugin_bing"
+                    ),
+                ],
+            ]
+        )
+        await cq.edit(t("ai_login_success"))
 
 
 plugins.append("bard")
