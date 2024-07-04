@@ -10,7 +10,7 @@ langs = [
     "en-US",
     "pt-BR",
     "es-ES",
-    "eo-UY",
+    "eo-XX",
     "fr-FR"
 ]
 
