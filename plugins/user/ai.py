@@ -30,7 +30,7 @@ from utils import http
 bing_instances = {}
 bard_instances = {}
 
-tones = ["professional", "casual", "polite", "funny", "social_post", "witty"]
+tones = ["professional", "casual", "polite", "funny", "social+post", "witty"]
 
 
 async def filter_bing_logic(flt, client: Client, message: Message):
@@ -334,7 +334,7 @@ async def tone(c: Client, m: Message | CallbackQuery, t):
         error_desc = error_desc.split("=")[1]
         return await m.edit(t("ai_error").format(error=error_desc))
 
-    await m.edit(rtext["tones"][tone.replace("_", " ")])
+    await m.edit(rtext["tones"][tone.replace("+", " ")])
 
 
 @Client.on_message(
