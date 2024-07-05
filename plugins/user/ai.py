@@ -1,7 +1,6 @@
 import base64
 import io
 import json
-import os
 import re
 from datetime import datetime
 from tempfile import NamedTemporaryFile
@@ -30,6 +29,8 @@ from utils import http
 
 bing_instances = {}
 bard_instances = {}
+
+tones = ["professional", "casual", "polite", "funny", "social_post", "witty"]
 
 
 async def filter_bing_logic(flt, client: Client, message: Message):
@@ -92,7 +93,7 @@ async def process_mode(mtext, mmode):
 
 # This function is triggered when the ".bing" command is sent by a sudoer
 @Client.on_message(
-    (filters.command("bing", prefixes=".") | filter_bing) & filters.sudoers
+    (filters.command(["bing", "copilot"], prefixes=".") | filter_bing) & filters.sudoers
 )
 @use_lang()
 async def bing(c: Client, m: Message, t):
@@ -141,7 +142,7 @@ async def bing(c: Client, m: Message, t):
                 mtext = m.text.split(" ", maxsplit=1)[1]
 
         mmode, mtext = await process_mode(mtext, mmode)
-        await m.edit(t("ai_bing_searching").format(text=f"<pre>{mtext}</pre>"))
+        await m.edit(t("ai_bing_searching").format(text=f"<blockquote>{mtext}</blockquote>"))
         style = ConversationStyle.creative
         if await Config.filter(id="bing").exists():
             mode = (await Config.get(id="bing")).value
@@ -168,9 +169,9 @@ async def bing(c: Client, m: Message, t):
         page = await update_page(taccount, path, page_title, page_content, author_info)
 
         if len(text) > 4096 or mmode == "telegraph":
-            newm = await m.edit(f'<pre>{mtext}</pre>\n\n{page["url"]}')
+            newm = await m.edit(f'<blockquote>{mtext}</blockquote>\n\n{page["url"]}')
         else:
-            newm = await m.edit(f"<pre>{mtext}</pre>\n\n{text[:4096]}")
+            newm = await m.edit(f"<blockquote>{mtext}</blockquote>\n\n{text[:4096]}")
 
         bing_instances[newm.id] = [bot, taccount, page["path"], mmode]
     except Exception as e:
@@ -178,7 +179,7 @@ async def bing(c: Client, m: Message, t):
 
 
 # This function is triggered when the ".bingimg" command is sent by a sudoer
-@Client.on_message(filters.command("bingimg", prefixes=".") & filters.sudoers)
+@Client.on_message(filters.command(["bingimg", "mkimg"], prefixes=".") & filters.sudoers)
 @use_lang()
 async def bingimg(c: Client, m: Message, t):
     text = (
@@ -208,9 +209,14 @@ async def bingimg(c: Client, m: Message, t):
     await Config.filter(id="bing").update(valuej=json.dumps(con.valuej))
     urls = await ic.gen_image(text, "PT", False)
 
+    if "error" in urls:
+        error_desc = urls["error"]["message"].split(";")[1]
+        error_desc = error_desc.split("=")[1]
+        return await m.edit(t("ai_error").format(error=error_desc))
+
     photos = []
 
-    for n, url in enumerate(urls):
+    for n, url in enumerate(urls["images"]):
         x = await http.get(url["thumbnailUrl"])
         photos.append(
             InputMediaPhoto(io.BytesIO(x.content), caption=text if n == 0 else None)
@@ -226,7 +232,7 @@ async def bingimg(c: Client, m: Message, t):
 
 
 # This function is triggered when the ".bingsticker" command is sent by a sudoer
-@Client.on_message(filters.command("bingsticker", prefixes=".") & filters.sudoers)
+@Client.on_message(filters.command(["bingsticker", "mkstr"], prefixes=".") & filters.sudoers)
 @use_lang()
 async def bingstr(c: Client, m: Message, t):
     text = (
@@ -256,9 +262,12 @@ async def bingstr(c: Client, m: Message, t):
     await Config.filter(id="bing").update(valuej=json.dumps(con.valuej))
     urls = await ic.gen_sticker(text, "PT", True)
 
-    photos = []
+    if "error" in urls:
+        error_desc = urls["error"]["message"].split(";")[1]
+        error_desc = error_desc.split("=")[1]
+        return await m.edit(t("ai_error").format(error=error_desc))
 
-    for n, url in enumerate(urls):
+    for n, url in enumerate(urls["images"]):
         img_base64 = url["imageBackgroundRemovedBase64"]
         img_bytes = base64.b64decode(img_base64)
         image = Image.open(io.BytesIO(img_bytes))
@@ -268,6 +277,64 @@ async def bingstr(c: Client, m: Message, t):
                 await m.reply_to_message.reply_sticker(f.name)
             else:
                 await m.reply_sticker(f.name)
+
+
+@Client.on_message(filters.command("tone", prefixes=".") & filters.sudoers)
+@bot.on_callback_query(filters.regex(r"^ai_tone_"))
+@use_lang()
+async def tone(c: Client, m: Message | CallbackQuery, t):
+    if isinstance(m, Message):
+        text = (
+            m.text.split(" ", maxsplit=1)[1]
+            if len(m.text.split(" ", maxsplit=1)) >= 2
+            else m.reply_to_message.text
+            if m.reply_to_message
+            else None
+        )
+        if not text:
+            return await m.edit(t("ai_no_text"))
+
+    con = await Config.get_or_none(id="tone")
+    if isinstance(m, Message) and (not con or con.valuej["type"] == "quest"):
+        await Config.get_or_create(id="tone")
+        await Config.filter(id="tone").update(valuej={"type": "quest"}, value=text)
+        kb = [
+            [InlineKeyboardButton(text=t(tone), callback_data=f"ai_tone_{tone}")]
+            for tone in tones
+        ]
+        if m.from_user.is_self:
+            await m.delete()
+        return await m.reply(t("chose_tone"), reply_markup=InlineKeyboardMarkup(kb))
+
+    if isinstance(m, CallbackQuery):
+        text = con.value
+        tone = m.data.split("_")[-1]
+    else:
+        tone = con.valuej["type"]
+
+    await m.edit(t("ai_making_text").format(text=text, tone=t(tone)))
+    con = await Config.get_or_none(id="bing")
+    if not con:
+        return await m.edit(t("ai_not_logged_in"))
+    ic = ImageCreator()
+    ic.scope = con.valuej["scope"]
+    ic.access_token = con.valuej["access_token"]
+    ic.vrefresh_token = con.valuej["vrefresh_token"]
+    ic.expires_in = datetime.fromtimestamp(con.valuej["expires_in"])
+    await ic.get_ms_token()
+    await ic.get_ms_cokies()
+    con.valuej["expires_in"] = ic.expires_in.timestamp()
+    con.valuej["access_token"] = ic.access_token
+    await Config.filter(id="bing").update(valuej=json.dumps(con.valuej))
+
+    rtext = await ic.tone_rewrite(text)
+
+    if "error" in rtext:
+        error_desc = rtext["error"]["message"].split(";")[1]
+        error_desc = error_desc.split("=")[1]
+        return await m.edit(t("ai_error").format(error=error_desc))
+
+    await m.edit(rtext["tones"][tone.replace("_", " ")])
 
 
 @Client.on_message(
@@ -312,7 +379,7 @@ async def bardc(c: Client, m: Message, t):
                 mtext = m.text.split(" ", maxsplit=1)[1]
 
         mmode, mtext = await process_mode(mtext, mmode)
-        await m.edit(t("ai_bard_searching").format(text=f"<pre>{mtext}</pre>"))
+        await m.edit(t("ai_bard_searching").format(text=f"<blockquote>{mtext}</blockquote>"))
         if m.reply_to_message and (
             m.reply_to_message.photo or m.reply_to_message.sticker
         ):
@@ -327,7 +394,7 @@ async def bardc(c: Client, m: Message, t):
         else:
             file_bytes = None
         response = bot.generate_content(mtext, image=file_bytes)
-        text = f"<pre>{mtext}</pre>\n\n{response.text}"
+        text = f"<blockquote>{mtext}</blockquote>\n\n{response.text}"
 
         ttext = markdown.markdown(response.text)
         for i in response.web_images:
@@ -345,7 +412,7 @@ async def bardc(c: Client, m: Message, t):
         page_content = re.sub(r"<h2.*?>(.*?)</h2>", r"<h3>\1</h3>", page_content)
         page = await update_page(taccount, path, page_title, page_content, author_info)
         if len(text) > 4096 or mmode == "telegraph":
-            newm = await m.edit(f'<pre>{mtext}</pre>\n\n{page["url"]}')
+            newm = await m.edit(f'<blockquote>{mtext}</blockquote>\n\n{page["url"]}')
         elif response.web_images:
             photos = [
                 InputMediaPhoto(str(i.url), caption=text[:4096] if n == 0 else None)
@@ -377,6 +444,10 @@ async def config_bing(c: Client, cq: CallbackQuery, t):
                     InlineKeyboardButton(
                         text=t("ai_login"),
                         callback_data="config_plugin_bing_login",
+                    ),
+                    InlineKeyboardButton(
+                        text=t("tone_config"),
+                        callback_data="config_plugin_bing_tone",
                     ),
                 ],
                 [InlineKeyboardButton(text=t("back"), callback_data="config_plugins")],
@@ -478,6 +549,45 @@ async def config_bing_login(c: Client, cq: CallbackQuery, t):
             ]
         )
         await cq.edit(t("ai_login_success"))
+
+
+@bot.on_callback_query(filters.regex(r"\bconfig_plugin_bing_tone\b"))
+@use_lang()
+async def config_bing_tone(c: Client, cq: CallbackQuery, t):
+    kb = [
+        [
+            InlineKeyboardButton(
+                text=t(tone), callback_data=f"config_plugin_bing_tone_{tone}"
+            )
+        ]
+        for tone in tones
+    ]
+    kb.append(
+        [
+            InlineKeyboardButton(
+                text=t("quest"), callback_data="config_plugin_bing_tone_quest"
+            )
+        ]
+    )
+    kb.append(
+        [InlineKeyboardButton(text=t("back"), callback_data="config_plugin_bing")]
+    )
+
+    await cq.edit(t("chose_tone"), reply_markup=InlineKeyboardMarkup(kb))
+
+
+@bot.on_callback_query(filters.regex(r"\bconfig_plugin_bing_tone_"))
+@use_lang()
+async def config_bing_tones(c: Client, cq: CallbackQuery, t):
+    tone = cq.data.split("_")[-1]
+    await Config.get_or_create(id="tone")
+    await Config.filter(id="tone").update(valuej={"type": tone})
+    await cq.edit(
+        t("tone_set").format(tone=t(tone)),
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton(text=t("back"), callback_data="config_plugin_bing")]]
+        ),
+    )
 
 
 plugins.append("bard")

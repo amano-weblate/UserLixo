@@ -1,6 +1,6 @@
 https://github.com/hydrogram/hydrogram/archive/dev.zip
 git+https://github.com/F33RNI/EdgeGPT
-NewBingImageCreator
+NewBingImageCreator==2.2.6
 tortoise-orm
 python-gemini-api
 tgcrypto
