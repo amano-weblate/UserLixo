@@ -3,11 +3,9 @@ LANGUAGE_CODE: eo-UY
 FLAG: '🇪🇴'
 #geral
 back: '« Reiru'
-canceled: Canceled.
-#backup.py
-initiating_backup: Komencante sekurkopion...
+initiating_backup: Komencante sekurkopion…
 backup_caption: Sekurkopio petita de {name} je {date}.
-uploading_backup: Alŝutante sekurkopion...
+uploading_backup: Alŝutante sekurkopion…
 backup_completed: Sekurkopio finiĝis post {time} sekundoj
 #cmd.py
 cmd_no_output: Komando efektivigita sukcese.
@@ -16,24 +14,15 @@ choose_options: "Elektu unu el la opcioj:"
 #execs.py
 exec_seucess: Ekzekutita sukcese.
 #kibe.py
-kibe_choose: Please choose the kibe format
-sticker: Sticker
 emoji: Emoji
-both: Both
-kibe_wait: '👍 Prilaborado...'
-kibe_resize_video: '📹 Regrandigo de video...'
-kibe_resize_photo: '🖼️ Regrandigo de foto...'
-kibe_adding: '📤 Aldonante sticker al paki...'
-kibe_creating: '📤 Kreante pako...'
+kibe_wait: '👍 Prilaborado…'
+kibe_resize_video: '📹 Regrandigo de video…'
+kibe_resize_photo: '🖼️ Regrandigo de foto…'
+kibe_adding: '📤 Aldonante sticker al paki…'
+kibe_creating: '📤 Kreante pako…'
 kibes_open: Aldonu glumarkon al Telegram
 kibee_open: Aldonu Emoji al Telegram
 kibe_done: '👍 Farita!'
-kibe_config_button: "Kibe settings"
-Kibe_settings: Change Kibe settings
-kibe_emoji: "Choose kibe emoji"
-kibe_emoji_choose: "Current emoji: {emoji}\nSend the emoji you want to use in kibe or /cancel to cancel"
-kibe_emoji_set: "Kibe emoji set to {emoji}"
-#wiki.py
 wiki_choose: "Elektu unu el la subaj titoloj:"
 read_more: Legu pli
 wiki_error: Okazis eraro dum ricevado de la Vikipedio-paĝo.
@@ -43,9 +32,6 @@ config_choose: "Elektu unu el la opcioj por agordi:"
 choose_lang: "Elektu unu el la malsupraj lingvoj:"
 lang_set: Lingvo agordita al Esperanto.
 lang: Ŝanĝiĝi lingvon
-plugins_settings_button: Plugins settings
-plugins_settings: "Choose one plugin to configure:"
-#mix.py on
 not_bot: Ĉi tio ne funkcias kun robotoj.
 no_data: Ĉi tiu persono malfunkciigis sian lastan viditon.
 online: "{mention} estas interreta"
@@ -58,39 +44,52 @@ minutes: "**{minutes}** minutoj\n"
 seconds: "**{seconds}** sekundoj\n"
 deleted: Ĉi tiu uzanto ne plu ekzistas.
 #fake.py
-fake_init: Komencante falsaĵon de uzanto {mention}...
-fake_back: Revenante al la originala profilo...
+fake_init: Komencante falsaĵon de uzanto {mention}…
+fake_back: Revenante al la originala profilo…
 fake_done: Nun mi estas {mention}!
 #ai.py
-ai_bing_searching: "Searching \"{text}\" on Bing..."
+ai_bing_searching: "Serĉante \"{text}\" ĉe Bing…"
 ai_no_text: "Vi devas sendi tekston por serĉi aŭ fari bildon."
-ai_making_image: "Farante bildon kun \"{text}\"..."
-ai_bard_searching: "Searching \"{text}\" on Bard..."
-bing_config_button: "BingAI settings"
-bing_settings: "BingAI settings"
-ai_mode: "change BingAI style"
-ai_mode_choose: "Choose one of the options:"
-ai_mode_creative: "Creative"
-ai_mode_balanced: "Balanced"
-ai_mode_precise: "Precise"
-ai_mode_changed: "BingAI style changed to {style} style."
-ai_login: "Login to BingAI"
-ai_login_text: "Please press the button below to log in. After completing the login, send the final URL here. For example: 'https://login.live.com/oauth20_desktop.srf?code=xxx&state=yyy&lc=zzz'. The important thing is to obtain this 'code' to log in"
-ai_login_success: "Login successful!"
-#upgrade.py
+ai_making_image: "Farante bildon kun \"{text}\"…"
 not_git_repo: "Eraro: Vi devas esti ene de git-deponejo por ĝisdatigi."
-upgrade_in_progress: "Ĝisdatigante fonton de branĉo '{branch}'..."
+upgrade_in_progress: "Ĝisdatigante fonton de branĉo '{branch}'…"
 already_up_to_date: "Estas nenio por ĝisdatigi de branĉo '{branch}'."
-restarting: "Rekomencante..."
-upgrade_failed: "Ĝisdatigo de branĉo '{branch}' malsukcesis (procezo eliris kun {returncode}):\n {decode}"
-updating_requirements: "Updating requirements..."
-requirements_update_failed: "Requirements update failed:\n{decode}"
-#youtube.py
+restarting: "Rekomencante…"
+upgrade_failed: "Ĝisdatigo de branĉo '{branch}' malsukcesis (procezo eliris kun {returncode}):\n
+  {decode}"
+updating_requirements: "Ĝisdatigante postulojn…"
 ytdl_missing_argument: "Mankas argumento: URL aŭ salamandredoj."
 ytdl_audio_button: "💿 Aŭdio"
 ytdl_video_button: "📹 Video"
 ytdl_file_too_big: "La dosiero estas tro granda por esti sendita."
-ytdl_downloading: "Elŝutado..."
+ytdl_downloading: "Elŝutado…"
 ytdl_send_error: "Okazis eraro dum sendado de la dosiero.\n {errmsg}"
-ytdl_sending: "Sendante..."
+ytdl_sending: "Sendante…"
 ytdl_sent: "Sendita sukcese."
+kibe_choose: Bonvolu elekti la kibe-formaton
+sticker: Glumarko
+canceled: Nuligite.
+kibe_emoji: Elektu kibe-emojon
+Kibe_settings: Ŝanĝu Kibe-agordojn
+kibe_config_button: Kibe-agordoj
+ai_bard_searching: Serĉante " {text} " ĉe Gemini…
+bing_settings: Agordoj de BingAI
+ai_mode: ŝanĝi BingAI-stilon
+ai_login_success: Ensalutu sukcesa!
+requirements_update_failed: "Ĝisdatigo de postuloj malsukcesis:\n {decode}"
+bing_config_button: Agordoj de BingAI
+ai_login_text: "Bonvolu premi la suban butonon por ensaluti. Post kompletigado de
+  la ensaluto, sendu la finan URL ĉi tie. Ekzemple: 'https://login.live.com/oauth20_desktop.srf?code=xxx&state=yyy&lc=zzz'.
+  La grava afero estas akiri ĉi tiun 'kodon' por ensaluti"
+ai_login: Ensalutu al BingAI
+ai_mode_changed: BingAI-stilo ŝanĝiĝis al {style} stilo.
+both: Ambaŭ
+ai_mode_balanced: Ekvilibrata
+kibe_emoji_choose: "Nuna emoji: {emoji}\n Sendu la emoji kiun vi volas uzi en kibe
+  aŭ /nuligi por nuligi"
+plugins_settings_button: Agordoj de kromprogramoj
+ai_mode_precise: Precize
+plugins_settings: 'Elektu unu kromaĵon por agordi:'
+kibe_emoji_set: Kibe-emoji agordita al {emoji}
+ai_mode_choose: 'Elektu unu el la opcioj:'
+ai_mode_creative: Kreema
