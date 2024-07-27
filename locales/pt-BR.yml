@@ -43,7 +43,7 @@ wiki_no_results: Nenhum resultado encontrado para {query}.
 config_choose: "Escolha uma das opções para configurar:"
 choose_lang: "Escolha um dos idiomas abaixo:"
 lang_set: Idioma definido para Português.
-lang: Alteriar idioma
+lang: Alterar idioma
 plugins_settings_button: Configurações dos Plugins
 plugins_settings: "Escolha um plugin para configurar:"
 #mix.py on
