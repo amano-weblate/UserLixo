@@ -1,38 +1,23 @@
-import yaml
-from db import Config
 from functools import partial, wraps
-from glob import glob
-import os
-from typing import Dict, List
-import inspect
+from pathlib import Path
 
-langs = [
-    "en-US",
-    "pt-BR",
-    "es-ES",
-    "eo-XX",
-    "fr-FR"
-]
+import yaml
+
+from db import Config
 
 default_language = "en-US"
 
 
-def cache_localizations(files: List[str]) -> Dict[str, Dict[str, Dict[str, str]]]:
-    ldict = {lang: {} for lang in langs}
-    for file in files:
-        _, pname = file.split(os.path.sep)
-        lang = pname.split(".")[0]
-        with open(file, "r") as f:
-            ldict[lang] = yaml.safe_load(f)
+def load_locales() -> dict[str, dict[str, str]]:
+    ldict = {}
+    for lang_file in Path("locales").glob("*.yml"):
+        with lang_file.open(encoding="utf-8") as f:
+            ldict[lang_file.stem] = yaml.safe_load(f)
+
     return ldict
 
 
-jsons = []
-
-for locale in langs:
-    jsons += glob(os.path.join("locales", f"{locale}.yml"))
-
-langdict = cache_localizations(jsons)
+langdict = load_locales()
 
 
 def use_lang():
