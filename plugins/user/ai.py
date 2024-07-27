@@ -81,9 +81,6 @@ async def process_mode(mtext, mmode):
     elif mtext.startswith("-t"):
         mmode = "telegraph"
         mtext = mtext[3:]
-    elif mtext.startswith("-v"):
-        mmode = "voice"
-        mtext = mtext[3:]
     elif not mmode:
         mmode = (await Config.get_or_create(id="bard"))[0].value
         if not mmode:
@@ -142,7 +139,9 @@ async def bing(c: Client, m: Message, t):
                 mtext = m.text.split(" ", maxsplit=1)[1]
 
         mmode, mtext = await process_mode(mtext, mmode)
-        await m.edit(t("ai_bing_searching").format(text=f"<blockquote>{mtext}</blockquote>"))
+        await m.edit(
+            t("ai_bing_searching").format(text=f"<blockquote>{mtext}</blockquote>")
+        )
         style = ConversationStyle.creative
         if await Config.filter(id="bing").exists():
             mode = (await Config.get(id="bing")).value
@@ -179,7 +178,9 @@ async def bing(c: Client, m: Message, t):
 
 
 # This function is triggered when the ".bingimg" command is sent by a sudoer
-@Client.on_message(filters.command(["bingimg", "mkimg"], prefixes=".") & filters.sudoers)
+@Client.on_message(
+    filters.command(["bingimg", "mkimg"], prefixes=".") & filters.sudoers
+)
 @use_lang()
 async def bingimg(c: Client, m: Message, t):
     text = (
@@ -232,7 +233,9 @@ async def bingimg(c: Client, m: Message, t):
 
 
 # This function is triggered when the ".bingsticker" command is sent by a sudoer
-@Client.on_message(filters.command(["bingsticker", "mkstr"], prefixes=".") & filters.sudoers)
+@Client.on_message(
+    filters.command(["bingsticker", "mkstr"], prefixes=".") & filters.sudoers
+)
 @use_lang()
 async def bingstr(c: Client, m: Message, t):
     text = (
@@ -280,7 +283,7 @@ async def bingstr(c: Client, m: Message, t):
 
 
 @Client.on_message(filters.command("tone", prefixes=".") & filters.sudoers)
-@bot.on_callback_query(filters.regex(r"^ai_tone_"))
+@bot.on_callback_query(filters.regex(r"^ai_tone_") & filters.sudoers)
 @use_lang()
 async def tone(c: Client, m: Message | CallbackQuery, t):
     if isinstance(m, Message):
@@ -379,7 +382,9 @@ async def bardc(c: Client, m: Message, t):
                 mtext = m.text.split(" ", maxsplit=1)[1]
 
         mmode, mtext = await process_mode(mtext, mmode)
-        await m.edit(t("ai_bard_searching").format(text=f"<blockquote>{mtext}</blockquote>"))
+        await m.edit(
+            t("ai_bard_searching").format(text=f"<blockquote>{mtext}</blockquote>")
+        )
         if m.reply_to_message and (
             m.reply_to_message.photo or m.reply_to_message.sticker
         ):
@@ -445,12 +450,16 @@ async def config_bing(c: Client, cq: CallbackQuery, t):
                         text=t("ai_login"),
                         callback_data="config_plugin_bing_login",
                     ),
+                ],
+                [
                     InlineKeyboardButton(
                         text=t("tone_config"),
                         callback_data="config_plugin_bing_tone",
                     ),
+                    InlineKeyboardButton(
+                        text=t("back"), callback_data="config_plugins"
+                    ),
                 ],
-                [InlineKeyboardButton(text=t("back"), callback_data="config_plugins")],
             ]
         ),
     )
@@ -602,7 +611,7 @@ async def config_bard(c: Client, cq: CallbackQuery, t):
             [
                 [
                     InlineKeyboardButton(
-                        text=t("ai_mode"), callback_data="config_plugin_bard_mode"
+                        text=t("bard_ai_mode"), callback_data="config_plugin_bard_mode"
                     )
                 ],
                 [InlineKeyboardButton(text=t("back"), callback_data="config_plugins")],
@@ -647,7 +656,7 @@ async def config_bard_mode_toggle(c: Client, cq: CallbackQuery, t):
         mode = bc.value
     else:
         mode = "message"
-    modes = ["message", "voice", "telegraph"]
+    modes = ["message", "telegraph"]
     mode = modes[(modes.index(mode) + 1) % len(modes)]
 
     await Config.filter(id="bard").update(value=mode)
