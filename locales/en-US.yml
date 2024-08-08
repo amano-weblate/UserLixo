@@ -101,6 +101,7 @@ ai_error: "An error occurred while generating:\n<blockquote>{error}</blockquote>
 tone_config: "Tone settings"
 ai_mode_telegraph: "Send result as Telegraph"
 ai_mode_message: "Send result as message"
+ai_mode_voice: "Send result as voice message and Telegraph"
 
 # ai.py Tones
 professional: Professional

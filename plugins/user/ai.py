@@ -81,6 +81,9 @@ async def process_mode(mtext, mmode):
     elif mtext.startswith("-t"):
         mmode = "telegraph"
         mtext = mtext[3:]
+    elif mtext.startswith("-v"):
+        mmode = "voice"
+        mtext = mtext[3:]
     elif not mmode:
         mmode = (await Config.get_or_create(id="bard"))[0].value
         if not mmode:
@@ -418,6 +421,11 @@ async def bardc(c: Client, m: Message, t):
         page = await update_page(taccount, path, page_title, page_content, author_info)
         if len(text) > 4096 or mmode == "telegraph":
             newm = await m.edit(f'<blockquote>{mtext}</blockquote>\n\n{page["url"]}')
+        elif mmode == "voice":
+            audio = bot.speech(response.text)
+            with NamedTemporaryFile(suffix=".mp3") as f:
+                f.write(bytes(audio['audio']))
+                newm = await m.reply_voice(f.name, caption=f'<blockquote>{mtext}</blockquote>\n\n{page["url"]}')
         elif response.web_images:
             photos = [
                 InputMediaPhoto(str(i.url), caption=text[:4096] if n == 0 else None)
@@ -656,7 +664,7 @@ async def config_bard_mode_toggle(c: Client, cq: CallbackQuery, t):
         mode = bc.value
     else:
         mode = "message"
-    modes = ["message", "telegraph"]
+    modes = ["message", "telegraph", "voice"]
     mode = modes[(modes.index(mode) + 1) % len(modes)]
 
     await Config.filter(id="bard").update(value=mode)
